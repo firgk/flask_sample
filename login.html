@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>登录</title>
+</head>
+<body>
+    <h2>系统登录</h2>
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+        <div>
+            账号：<input type="text" name="username" required>
+        </div>
+        <br>
+        <div>
+            密码：<input type="password" name="password" required>
+        </div>
+        <br>
+        <button type="submit">登录</button>
+    </form>
+</body>
+</html>

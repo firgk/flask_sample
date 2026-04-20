@@ -1,90 +1,115 @@
-from flask import *
-from threading import*
-from flask_httpauth import HTTPBasicAuth
+from flask import Flask, render_template, request, make_response, redirect, url_for
+from threading import Thread
 
+# 导入你的外部函数
 from func import *
 
+# ================ 初始化应用 ================
+app = Flask(__name__, static_folder="", template_folder="")
 
-app = Flask(__name__,static_folder="", template_folder="")
-auth = HTTPBasicAuth()
-
-
-
-users = {
+# 登录用户配置（手写账号密码）
+USER_DATA = {
     "admin": "123456"
 }
 
-@auth.verify_password
-def verify_password(username, password):
-    if username in users and users[username] == password:
-        return username
-    return None
-
-
-
+# ================ 手写全局登录校验（核心） ================
 @app.before_request
-def global_auth_check():
+def check_login():
     """
-    全局自动鉴权（所有路由自动需要登录，不用写装饰器）
-    包含 Cookie 持久化登录
+    所有请求前自动校验登录状态
+    1. 放行登录页、退出接口
+    2. 已登录 → 放行
+    3. 未登录 → 跳转到登录页
     """
-    # 放行静态资源（可选）
-    if request.path.startswith("/static"):
-        return
-
-    # 1. 检查是否有持久化 Cookie → 已登录直接放行
-    if request.cookies.get("logged_in") == "yes":
-        return
-
-    # 2. 没有登录 → 强制触发 flask-httpauth 登录
-    auth_response = auth.login_required(lambda: None)()
-    return auth_response
-
-
-def set_login_cookie(response):
-    """设置7天持久化登录 Cookie"""
-    response.set_cookie("logged_in", "yes", max_age=7 * 24 * 3600)
-    return response
-
-
-# ================ 路由 ================
-
-@app.route('/')
-@auth.login_required
-def index():
-    content='XXX'
-    resp = make_response(render_template('index.html', content=content))
-    return set_login_cookie(resp)  # 登录成功自动持久化
-
+    # 不需要登录就能访问的路径
+    free_paths = ["/login", "/logout"]
     
-# printhello_flask → 展示：后台异步执行函数，不返回结果给页面
+    # 如果是放行路径，直接跳过
+    if request.path in free_paths:
+        return
+    
+    # 检查 Cookie 是否登录
+    if request.cookies.get("logged_in") != "yes":
+        # 未登录 → 重定向到登录页
+        return redirect(url_for("login"))
+
+# ================ 手写登录/退出路由 ================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """登录页面 + 登录校验"""
+    # 如果已经登录，直接去首页
+    if request.cookies.get("logged_in") == "yes":
+        return redirect(url_for("index"))
+
+    # GET 请求 → 返回登录表单
+    if request.method == "GET":
+        return render_template("login.html")
+
+    # POST 请求 → 校验账号密码
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "").strip()
+
+    # 账号密码正确
+    if username in USER_DATA and USER_DATA[username] == password:
+        resp = make_response(redirect(url_for("index")))
+        # 设置7天持久化登录 Cookie
+        resp.set_cookie("logged_in", "yes", max_age=7*24*3600)
+        return resp
+
+    # 账号密码错误 → 返回登录页并提示
+    return render_template("login.html", error="账号或密码错误")
+
+@app.route('/logout')
+def logout():
+    """退出登录（清除 Cookie）"""
+    resp = make_response(redirect(url_for("login")))
+    resp.set_cookie("logged_in", "", expires=0)
+    return resp
+
+
+
+
+
+
+
+
+
+
+
+# ================ 业务路由 ================
+@app.route('/')
+def index():
+    content = '空'
+    return render_template('index.html', content=content)
+
 @app.route('/printhello_flask')
 def printhello_flask():
-    thread = Thread(target=printhello)
-    thread.start()
-    return render_template('index.html')
+    # 后台异步执行
+    Thread(target=printhello).start()
+    return redirect(url_for('index'))
 
-
-# returnhello_flask → 展示：执行函数并把结果返回给网页显示
 @app.route('/returnhello_flask')
 def returnhello_flask():
-    content=returnhello()
-    return render_template('index.html',content=content)
-    
-
-
-
-# if you need some args
-# @app.route('/re_make_picer/<id>')
-# def re_make_picer(id):
-#     thread = Thread(target=re_make_pic, args=(id,))
-#     thread.start()
-#     return redirect(url_for('index'))
+    content = returnhello()
+    return render_template('index.html', content=content)
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+# ================ 启动 ================
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
