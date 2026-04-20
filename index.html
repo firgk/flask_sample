@@ -4,17 +4,25 @@
     <title>title</title>
     <script>
         function redirectAndAlert(deffer) {
-            // 使用 window.location.href 实现页面重定向
-            window.location.href = deffer; // 替换为你的目标网页URL
+            window.location.href = deffer;
         }
     </script>
 </head>
 <body>
     <h1>Welcome</h1>
-    <span class="button-container">
-        <button onclick="redirectAndAlert('/printhello_flask')">print_hello_on_console</button>
-        <button onclick="redirectAndAlert('/returnhello_flask')">print_hello_on_web</button>
-    </span>
+
+    <button onclick="redirectAndAlert('/printhello_flask')">
+        print_hello_on_console
+    </button>
+
+    <button onclick="redirectAndAlert('/returnhello_flask')">
+        print_hello_on_web
+    </button>
+
+    <button onclick="redirectAndAlert('/logout')">
+        退出登录
+    </button>
+
     <ul>
         {{ content }}
     </ul>

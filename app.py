@@ -16,7 +16,7 @@ def index():
     return render_template('index.html',content=content)
 
     
-
+# printhello_flask → 展示：后台异步执行函数，不返回结果给页面
 @app.route('/printhello_flask')
 def printhello_flask():
     thread = Thread(target=printhello)
@@ -24,7 +24,7 @@ def printhello_flask():
     return render_template('index.html')
 
 
-
+# returnhello_flask → 展示：执行函数并把结果返回给网页显示
 @app.route('/returnhello_flask')
 def returnhello_flask():
     content=returnhello()
