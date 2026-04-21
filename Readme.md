@@ -13,11 +13,10 @@
 
 ---
 
+`ENABLE_AUTH = True` 可以选择是否启用网站密码校验
 
-## 2. 带校验的版本
 
-
-`app_auth.py` 为 flask(带校验) 的启动入口
+`auth.py` 为 flask(带校验) 的启动入口
 
 `login.html` 为 校验登录网站
 
