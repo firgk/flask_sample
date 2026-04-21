@@ -12,7 +12,7 @@ app = Flask(__name__, static_folder="", template_folder="")
 ENABLE_AUTH = True
 
 if ENABLE_AUTH:
-    from auth import init_auth
+    from tools.auth import init_auth
     init_auth(app)
 
 
