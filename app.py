@@ -1,11 +1,21 @@
+# app.py
+
 from flask import *
 from threading import*
 
-
 from func import *
 
+app = Flask(__name__, static_folder="", template_folder="")
 
-app = Flask(__name__,static_folder="", template_folder="")
+# ================ 引入认证================
+
+ENABLE_AUTH = True
+
+if ENABLE_AUTH:
+    from auth import init_auth
+    init_auth(app)
+
+
 
 
 @app.route('/')
@@ -30,7 +40,6 @@ def returnhello_flask():
     content=returnhello()
     return render_template('index.html',content=content)
     
-
 
 
 # if you need some args
