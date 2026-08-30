@@ -1,11 +1,21 @@
 # app.py
 
-from flask import *
-from threading import*
+import os
+import secrets
+from datetime import timedelta
+from threading import Thread
 
-from func import *
+from flask import Flask, render_template
+
+from func import printhello, returnhello
 
 app = Flask(__name__, static_folder="", template_folder="")
+app.config.update(
+    SECRET_KEY=os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32),
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(days=7),
+)
 
 # ================ 引入认证================
 
@@ -13,46 +23,28 @@ ENABLE_AUTH = True
 
 if ENABLE_AUTH:
     from tools.auth import init_auth
+
     init_auth(app)
 
 
-
-
-@app.route('/')
+@app.route("/")
 def index():
-    # 获取图片文件夹中的文件列表
-    content='空'
-    # 在index.html后添加传入的参数
-    return render_template('index.html',content=content)
+    content = "空"
+    return render_template("index.html", content=content)
 
-    
-# printhello_flask → 展示：后台异步执行函数，不返回结果给页面
-@app.route('/printhello_flask')
+
+@app.route("/printhello_flask")
 def printhello_flask():
     thread = Thread(target=printhello)
     thread.start()
-    return render_template('index.html')
+    return render_template("index.html")
 
 
-# returnhello_flask → 展示：执行函数并把结果返回给网页显示
-@app.route('/returnhello_flask')
+@app.route("/returnhello_flask")
 def returnhello_flask():
-    content=returnhello()
-    return render_template('index.html',content=content)
-    
-
-
-# if you need some args
-# @app.route('/re_make_picer/<id>')
-# def re_make_picer(id):
-#     thread = Thread(target=re_make_pic, args=(id,))
-#     thread.start()
-#     return redirect(url_for('index'))
-
-
-
-
+    content = returnhello()
+    return render_template("index.html", content=content)
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
